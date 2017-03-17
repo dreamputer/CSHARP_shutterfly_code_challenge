@@ -1,0 +1,7 @@
+E:\ShutterflyLTV\src\bin\Debug\ShutterflyLTV.exe.config
+E:\ShutterflyLTV\src\bin\Debug\ShutterflyLTV.exe
+E:\ShutterflyLTV\src\bin\Debug\ShutterflyLTV.pdb
+E:\ShutterflyLTV\src\bin\Debug\Newtonsoft.Json.Net20.dll
+E:\ShutterflyLTV\src\obj\Debug\src.csprojResolveAssemblyReference.cache
+E:\ShutterflyLTV\src\obj\Debug\ShutterflyLTV.exe
+E:\ShutterflyLTV\src\obj\Debug\ShutterflyLTV.pdb

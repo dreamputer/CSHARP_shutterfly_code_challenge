@@ -1,0 +1,137 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace ShutterflyLTV
+{
+    public class Ingester
+    {
+        public void Ingest(string json, DataStore ds)
+        {
+            var objects = JArray.Parse(json);
+            foreach (JObject obj in objects)
+            {
+                EventTypes eventType = (EventTypes)Enum.Parse(typeof(EventTypes), obj["type"].ToString().Trim('"'));
+                switch (eventType)
+                {
+                    case EventTypes.CUSTOMER:
+                        ParseCustomer(ds, obj);
+                        break;
+                    case EventTypes.SITE_VISIT:
+                        ParseSiteVisit(ds, obj);
+                        break;
+                    case EventTypes.IMAGE:
+                        ParseImage(ds, obj);
+                        break;
+                    case EventTypes.ORDER:
+                        ParseOrder(ds, obj);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void ParseCustomer(DataStore ds, JObject obj)
+        {
+            string key = obj["key"].ToString().Trim('"');
+            var customer = new Customer
+            {
+                key = key,
+                event_time = DateTime.ParseExact(obj["event_time"].ToString().Trim('"'), "yyyy-MM-dd:HH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture),
+                last_name = obj["last_name"].ToString().Trim('"'),
+                adr_city = obj["adr_city"].ToString().Trim('"'),
+                adr_state = obj["adr_state"].ToString().Trim('"')
+            };
+
+            EventVerbs eventVerb = (EventVerbs)Enum.Parse(typeof(EventVerbs), obj["verb"].ToString().Trim('"'));
+            switch (eventVerb)
+            {
+                case EventVerbs.NEW:
+                    ds.Customers.Add(customer);
+                    break;
+                case EventVerbs.UPDATE:
+                    var old = ds.Customers.Find(c => c.key.Equals(key));
+                    old = customer;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void ParseSiteVisit(DataStore ds, JObject obj)
+        {
+            string key = obj["key"].ToString().Trim('"');
+            var siteVisit = new SiteVisit
+            {
+                key = key,
+                event_time = DateTime.ParseExact(obj["event_time"].ToString().Trim('"'), "yyyy-MM-dd:HH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture),
+                customer_id = obj["customer_id"].ToString().Trim('"'),
+                tags = obj["tags"].ToString().Trim('"')
+            };
+
+            EventVerbs eventVerb = (EventVerbs)Enum.Parse(typeof(EventVerbs), obj["verb"].ToString().Trim('"'));
+            switch (eventVerb)
+            {
+                case EventVerbs.NEW:
+                    ds.SiteVisits.Add(siteVisit);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void ParseImage(DataStore ds, JObject obj)
+        {
+            string key = obj["key"].ToString().Trim('"');
+            var image = new Image
+            {
+                key = key,
+                event_time = DateTime.ParseExact(obj["event_time"].ToString().Trim('"'), "yyyy-MM-dd:HH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture),
+                customer_id = obj["customer_id"].ToString().Trim('"'),
+                camera_make = obj["camera_make"].ToString().Trim('"'),
+                camera_model = obj["camera_model"].ToString().Trim('"')
+            };
+
+            EventVerbs eventVerb = (EventVerbs)Enum.Parse(typeof(EventVerbs), obj["verb"].ToString().Trim('"'));
+            switch (eventVerb)
+            {
+                case EventVerbs.UPLOAD:
+                    ds.Images.Add(image);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void ParseOrder(DataStore ds, JObject obj)
+        {
+            string key = obj["key"].ToString().Trim('"');
+            var ord = new Order
+            {
+                key = key,
+                event_time = DateTime.ParseExact(obj["event_time"].ToString().Trim('"'), "yyyy-MM-dd:HH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture),
+                customer_id = obj["customer_id"].ToString().Trim('"'),
+                total_amount = Int32.Parse(obj["total_amount"].ToString().Trim('"'))
+            };
+
+            EventVerbs eventVerb = (EventVerbs)Enum.Parse(typeof(EventVerbs), obj["verb"].ToString().Trim('"'));
+            switch (eventVerb)
+            {
+                case EventVerbs.NEW:
+                    ds.Orders.Add(ord);
+                    break;
+                case EventVerbs.UPDATE:
+                    var old = ds.Orders.Find(o => o.key.Equals(key));
+                    old = ord;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
